@@ -1,32 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Security.Cryptography;
 using UrlShortener.Context;
 
 namespace UrlShortener.Services;
-
-/// <summary>
-/// Service for generating and managing shortened URLs.
-/// </summary>
 public class UrlShorteningService
 {
     public const int NumberOfCharsInShortLink = 7;
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private readonly ApplicationDBContext _dbContext;
+    private readonly IMemoryCache _cache;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UrlShorteningService"/> class.
-    /// </summary>
-    /// <param name="dbContext">The database context to use.</param>
-    public UrlShorteningService(ApplicationDBContext dbContext)
+    public UrlShorteningService(ApplicationDBContext dbContext, IMemoryCache cache)
     {
         _dbContext = dbContext;
+        _cache = cache;
     }
 
-    /// <summary>
-    /// Generates a unique code for the shortened URL.
-    /// </summary>
-    /// <returns>A unique code as a string.</returns>
     public async Task<string> GenerateUniqueCode()
     {
         var codeChars = new char[NumberOfCharsInShortLink];
@@ -53,5 +44,22 @@ public class UrlShorteningService
                 return code;
             }
         }
+    }
+
+    public async Task<string?> GetLongUrl(string code)
+    {
+        if (_cache.TryGetValue(code, out string? longUrl))
+            return longUrl;
+        
+        var shortenUrl = await _dbContext.ShortenUrls.SingleOrDefaultAsync(s => s.Code == code);
+        if (shortenUrl == null)
+            return null;
+        
+        _cache.Set(code, shortenUrl.LongUrl, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+        });
+
+        return shortenUrl.LongUrl;
     }
 }

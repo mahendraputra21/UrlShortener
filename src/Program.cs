@@ -15,6 +15,9 @@ builder.Services.AddDbContext<ApplicationDBContext>(o =>
 
 builder.Services.AddScoped<UrlShorteningService>();
 
+// Add MemoryCache service
+builder.Services.AddMemoryCache();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -53,17 +56,17 @@ app.MapPost("api/shorten", async (
     return Results.Ok(shortenedUrl.ShortUrl);
 });
 
-app.MapGet("api/{code}", async (string code, ApplicationDBContext dbContext) =>
+app.MapGet("api/{code}", async (
+    string code,
+    UrlShorteningService urlShorteningService,
+    ApplicationDBContext dbContext) =>
 {
-    var shortenedUrl = await dbContext.ShortenUrls
-        .SingleOrDefaultAsync(s => s.Code == code);
+    var shortenedUrl = await urlShorteningService.GetLongUrl(code);
 
-    if(shortenedUrl is null)
-    {
+    if (shortenedUrl is null)
         return Results.NotFound();
-    }
-
-    return Results.Redirect(shortenedUrl.LongUrl);
+    
+    return Results.Redirect(shortenedUrl);
 });
 
 app.UseHttpsRedirection();
