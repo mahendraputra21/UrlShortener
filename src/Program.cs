@@ -40,7 +40,6 @@ app.MapPost("api/shorten", async (
 
     var shortenedUrl = new ShortenUrl()
     {
-        Id = Guid.NewGuid(),
         LongUrl = request.Url,
         Code = code,
         ShortUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/api/{code}",
