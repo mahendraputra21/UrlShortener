@@ -29,7 +29,7 @@ public class UrlShorteningServiceTests
         _cacheMock.Setup(c => c.GetStringAsync(code, It.IsAny<CancellationToken>())).ReturnsAsync(longUrl);
 
         // Act
-        var result = await _service.GetLongUrl(code);
+        var result = await _service.GetLongUrlAsync(code);
 
         // Assert
         Assert.Equal(longUrl, result);
@@ -49,7 +49,7 @@ public class UrlShorteningServiceTests
         _dbContextMock.Setup(db => db.ShortenUrls.SingleOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<Func<ShortenUrl, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync(shortenUrl);
 
         // Act
-        var result = await _service.GetLongUrl(code);
+        var result = await _service.GetLongUrlAsync(code);
 
         // Assert
         Assert.Equal(longUrl, result);
@@ -67,7 +67,7 @@ public class UrlShorteningServiceTests
         _dbContextMock.Setup(db => db.ShortenUrls.SingleOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<Func<ShortenUrl, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync((ShortenUrl?)null);
 
         // Act
-        var result = await _service.GetLongUrl(code);
+        var result = await _service.GetLongUrlAsync(code);
 
         // Assert
         Assert.Null(result);

@@ -41,7 +41,7 @@ app.MapPost("api/shorten", async (
         return Results.BadRequest("The Spesific URL is invalid.");
     }
 
-    var code = await urlShorteningService.GenerateUniqueCode();
+    var code = await urlShorteningService.GenerateUniqueCodeAsync();
 
     var shortenedUrl = new ShortenUrl()
     {
@@ -63,7 +63,7 @@ app.MapGet("api/{code}", async (
     UrlShorteningService urlShorteningService,
     ApplicationDBContext dbContext) =>
 {
-    var shortenedUrl = await urlShorteningService.GetLongUrl(code);
+    var shortenedUrl = await urlShorteningService.GetLongUrlAsync(code);
 
     if (shortenedUrl is null)
         return Results.NotFound();

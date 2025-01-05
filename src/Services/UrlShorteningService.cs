@@ -18,7 +18,7 @@ public class UrlShorteningService
         _cache = cache;
     }
 
-    public async Task<string> GenerateUniqueCode()
+    public async Task<string> GenerateUniqueCodeAsync()
     {
         var codeChars = new char[NumberOfCharsInShortLink];
         var alphabetLength = Alphabet.Length;
@@ -46,7 +46,7 @@ public class UrlShorteningService
         }
     }
 
-    public async Task<string?> GetLongUrl(string code)
+    public async Task<string?> GetLongUrlAsync(string code)
     {
         var cachedLongUrl = await _cache.GetStringAsync(code);
 
