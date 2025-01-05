@@ -5,3 +5,6 @@
 /src/obj
 /.vs/UrlShortener
 /src/bin/Debug/net8.0
+/.vs/ProjectEvaluation
+/UrlShortener.Test/bin/Debug/net8.0
+/UrlShortener.Test/obj

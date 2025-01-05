@@ -13,10 +13,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDBContext>(o =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
 
-builder.Services.AddScoped<UrlShorteningService>();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
 
-// Add MemoryCache service
-builder.Services.AddMemoryCache();
+builder.Services.AddScoped<UrlShorteningService>();
 
 var app = builder.Build();
 

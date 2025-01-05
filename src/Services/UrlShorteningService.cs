@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using System.Security.Cryptography;
 using UrlShortener.Context;
 
@@ -10,9 +10,9 @@ public class UrlShorteningService
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private readonly ApplicationDBContext _dbContext;
-    private readonly IMemoryCache _cache;
+    private readonly IDistributedCache _cache;
 
-    public UrlShorteningService(ApplicationDBContext dbContext, IMemoryCache cache)
+    public UrlShorteningService(ApplicationDBContext dbContext, IDistributedCache cache)
     {
         _dbContext = dbContext;
         _cache = cache;
@@ -48,17 +48,21 @@ public class UrlShorteningService
 
     public async Task<string?> GetLongUrl(string code)
     {
-        if (_cache.TryGetValue(code, out string? longUrl))
-            return longUrl;
+        var cachedLongUrl = await _cache.GetStringAsync(code);
+
+        if (cachedLongUrl != null) return cachedLongUrl;
+
+        var shortenUrl = await _dbContext.ShortenUrls
+                                         .SingleOrDefaultAsync(s => s.Code == code);
         
-        var shortenUrl = await _dbContext.ShortenUrls.SingleOrDefaultAsync(s => s.Code == code);
-        if (shortenUrl == null)
-            return null;
-        
-        _cache.Set(code, shortenUrl.LongUrl, new MemoryCacheEntryOptions
+        if (shortenUrl == null) return null;
+
+        var options = new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-        });
+        };
+
+        await _cache.SetStringAsync(code, shortenUrl.LongUrl, options);
 
         return shortenUrl.LongUrl;
     }
